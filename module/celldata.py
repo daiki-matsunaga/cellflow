@@ -7,6 +7,9 @@ from module.orientation import Orientation
 
 class CellData:
     def __init__(self, idImage):
-        print(const.UM_PIX)
+        self.imgCell  = plt.imread(f'{const.TARGET_DIR}/tif/image{idImage:04}.tif')
+        self.imgMask0 = plt.imread(f'{const.TARGET_DIR}/mask/image{idImage:04}-1.tif')
 
         self.ori = Orientation(idImage)
+
+        print(self.imgCell)
