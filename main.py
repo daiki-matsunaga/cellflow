@@ -1,5 +1,10 @@
-import numpy as np
-from module import celldata
+import tqdm
+from module.celldata import CellData
 
 if __name__ == '__main__':
-    data = celldata.CellData(0)
+    data = CellData()
+
+    for idImage in tqdm.tqdm(range(1000)):
+        data.read(idImage)
+
+    data.draw_figure(data.intensity_mean, 'mean intensity')

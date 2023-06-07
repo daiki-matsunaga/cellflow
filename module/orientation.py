@@ -4,13 +4,13 @@ from module import const
 
 class Orientation:
     def __init__(self, idImage):
-        self.ori = pd.read_csv(f'{const.TARGET_DIR}/orientations/data{idImage:04}.csv')
+        self.ori = pd.read_csv(f'{const.DIR}/orientations/data{idImage:04}.csv')
         self.ori['Orientation'] = self.ori['Orientation']/180.0*np.pi # degree to radian
 
         # newly added column
         self.ori['nx'] = self.ori['ny'] = 0.0
 
-        print(self.ori)
+        #print(self.ori)
 
     def is_inside_mask(self):
         for index, row in df.iterrows():
