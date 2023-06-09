@@ -4,7 +4,7 @@ from module import const
 
 class Orientation:
     def __init__(self, idImage):
-        self.ori = pd.read_csv(f'{const.DIR}/orientations/data{idImage:04}.csv')
+        self.ori = pd.read_csv(f'{const.DIR}/data/orientations/data{idImage:04}.csv')
         self.ori['Orientation'] = self.ori['Orientation']/180.0*np.pi # degree to radian
 
         # newly added column

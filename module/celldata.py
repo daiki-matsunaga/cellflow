@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import glob
 from module import const
+from module.piv import Piv
 from module.orientation import Orientation
 
 class CellData:
@@ -12,7 +13,7 @@ class CellData:
         self.intensity_mean = []
 
         # count image numbers
-        self.numImage = len(glob.glob(const.DIR + 'tif/*'))
+        self.numImage = len(glob.glob(f'{const.DIR}/images/tif/*'))
 
         self.show_status()
 
@@ -23,11 +24,13 @@ class CellData:
         print('#'*80)
 
     def read(self, idImage):
-        self.imgCell = plt.imread(f'{const.DIR}/tif/image{idImage:04}.tif')
+        # read images
+        # Note: mask = 1 (inside), mask = 0 (outside)
+        self.imgCell = plt.imread(f'{const.DIR}/images/tif/image{idImage:04}.tif')
+        self.imgMask0 = plt.imread(f'{const.DIR}/images/mask/image{idImage:04}-1.tif')//255
 
-        # mask = 1: inside, mask = 0: outside
-        self.imgMask0 = plt.imread(f'{const.DIR}/mask/image{idImage:04}-1.tif')//255
-
+        # read data
+        self.piv = Piv(idImage, self.imgCell, self.imgMask0)
         self.ori = Orientation(idImage)
 
         self.intensity_mean.append(self.imgCell[self.imgMask0 == 1].mean())
