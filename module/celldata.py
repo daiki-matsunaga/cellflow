@@ -24,16 +24,27 @@ class CellData:
         print('#'*80)
 
     def read(self, idImage):
+        self.idImage = idImage
+
         # read images
         # Note: mask = 1 (inside), mask = 0 (outside)
-        self.imgCell = plt.imread(f'{const.DIR}/images/tif/image{idImage:04}.tif')
+        self.imgCell  = plt.imread(f'{const.DIR}/images/tif/image{idImage:04}.tif')
         self.imgMask0 = plt.imread(f'{const.DIR}/images/mask/image{idImage:04}-1.tif')//255
+        self.imgMask1 = plt.imread(f'{const.DIR}/images/mask/image{idImage + const.PIV_FRAME_DIFF:04}-1.tif')//255
+
+        # erode masks
+        kernel = np.ones((5, 5), np.uint8)
+        imgMaskA = cv2.erode(self.imgMask0, kernel, iterations=20)
+        imgMaskB = cv2.erode(self.imgMask1, kernel, iterations=20)
 
         # read data
-        self.piv = Piv(idImage, self.imgCell, self.imgMask0)
+        self.piv = Piv(idImage, (imgMaskA | imgMaskB))
         self.ori = Orientation(idImage)
-
+        
         self.intensity_mean.append(self.imgCell[self.imgMask0 == 1].mean())
+
+    def analyse(self):
+        self.piv.draw_flowfield(idImage, self.imgCell)
 
     def draw_figure(self, var, ylabel='y label'):
         fig, ax = plt.subplots()
