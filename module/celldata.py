@@ -11,6 +11,7 @@ class CellData:
     def __init__(self):
         # initialize lists
         self.intensity_mean = []
+        self.average_velocity = []
 
         # count image numbers
         self.numImage = len(glob.glob(f'{const.DIR}/images/tif/*'))
@@ -39,12 +40,16 @@ class CellData:
 
         # read data
         self.piv = Piv(idImage, (imgMaskA | imgMaskB))
-        self.ori = Orientation(idImage)
+        self.ori = Orientation(idImage, self.imgMask0)
         
         self.intensity_mean.append(self.imgCell[self.imgMask0 == 1].mean())
+        self.average_velocity.append(self.piv.average_velocity)
 
-    def analyse(self):
-        self.piv.draw_flowfield(idImage, self.imgCell)
+    def output(self):
+        self.piv.draw_flowfield(self.imgCell)
+        self.piv.draw_divergence(self.imgCell)
+
+        self.ori.draw_orientation(self.imgCell)
 
     def draw_figure(self, var, ylabel='y label'):
         fig, ax = plt.subplots()
