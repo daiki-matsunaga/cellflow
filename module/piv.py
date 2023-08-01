@@ -3,35 +3,32 @@ import pandas as pd
 import pathlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-from module import const
 from module import utils
-from module.const import TARGET_U
-
-import sys
 
 class Piv:
-    def __init__(self, idImage, imgMask):
+    def __init__(self, config, idImage, imgMask):
+        self.config = config
         self.idImage = idImage
 
         # read and set column names
         # see here for details: https://sites.google.com/site/qingzongtseng/piv/tuto?authuser=0
-        self.df = pd.read_csv(f'{const.DIR}/data/piv/result{const.PIV_FRAME_DIFF:02}_{idImage:04}.txt', header=None, delimiter=r'\s+')
+        self.df = pd.read_csv(f'{config.DIR}/data/piv/result{config.PIV_FRAME_DIFF:02}_{idImage:04}.txt', header=None, delimiter=r'\s+')
         self.df = self.df.rename(columns={0: 'x', 1: 'y', 2: 'ux1', 3: 'uy1', 4: 'mag1', 5: 'ang1', 6: 'p1'})
         self.df = self.df.rename(columns={7: 'ux2', 8: 'uy2', 9: 'mag2', 10: 'ang2', 11: 'p2'})
         self.df = self.df.rename(columns={12: 'ux0', 13: 'uy0', 14: 'mag0', 15: 'flag'})
 
         # multiply to convert from pix/frame to um/min
-        coeff = const.UM_PIX/(const.FRAME_INTERVAL*const.PIV_FRAME_DIFF)*60.0
-        self.df['vx'] = self.df[TARGET_U['x']]*coeff
-        self.df['vy'] = self.df[TARGET_U['y']]*coeff
-        self.df['vn'] = self.df[TARGET_U['mag']]*coeff
+        coeff = config.UM_PIX/(config.FRAME_INTERVAL*config.PIV_FRAME_DIFF)*60.0
+        self.df['vx'] = self.df[config.TARGET_U['x']]*coeff
+        self.df['vy'] = self.df[config.TARGET_U['y']]*coeff
+        self.df['vn'] = self.df[config.TARGET_U['mag']]*coeff
 
         # extract inner part by applying mask
         # df_mask: dataframe that contains data inside the mask 
         self.df_mask = utils.apply_mask(self.df, imgMask)
 
         # subtract by average velocity if True
-        if const.FLAG_SUBTRACT_AVERAGE_PIV:
+        if config.FLAG_SUBTRACT_AVERAGE_PIV:
             vmx = self.df_mask['vx'].mean()
             vmy = self.df_mask['vy'].mean()
 
@@ -64,46 +61,39 @@ class Piv:
 
             # check value existance of neighbours
             # Note: dataframe is df_mask to only use the inner part data
-            fxp = self.df_mask.index[((self.df_mask['x'] == x + pivPixelDiff) & (self.df_mask['y'] == y))].tolist()
-            fxm = self.df_mask.index[((self.df_mask['x'] == x - pivPixelDiff) & (self.df_mask['y'] == y))].tolist()
-            fyp = self.df_mask.index[((self.df_mask['x'] == x) & (self.df_mask['y'] == y + pivPixelDiff))].tolist()
-            fym = self.df_mask.index[((self.df_mask['x'] == x) & (self.df_mask['y'] == y - pivPixelDiff))].tolist()
-
-            # if the value exist, return index
-            # if the value does not exist, return False
-            fxp = False if len(fxp) == 0 else fxp[0]
-            fxm = False if len(fxm) == 0 else fxm[0]
-            fyp = False if len(fyp) == 0 else fyp[0]
-            fym = False if len(fym) == 0 else fym[0]
+            fxp = utils.get_index_at_position(self.df_mask, x + pivPixelDiff, y)
+            fxm = utils.get_index_at_position(self.df_mask, x - pivPixelDiff, y)
+            fyp = utils.get_index_at_position(self.df_mask, x, y + pivPixelDiff)
+            fym = utils.get_index_at_position(self.df_mask, x, y - pivPixelDiff)
 
             if fxp and fxm:
                 up = self.df.loc[fxp, 'vx']
                 um = self.df.loc[fxm, 'vx']
-                rurx = (up - um)/(2.0*pivPixelDiff*const.UM_PIX)
+                rurx = (up - um)/(2.0*pivPixelDiff*self.config.UM_PIX)
             else:
                 rurx = np.nan
             """
             elif fxp:
                 up = self.df.loc[fxp, 'vx']
-                rurx = (up - u)/(pivPixelDiff*const.UM_PIX)
+                rurx = (up - u)/(pivPixelDiff*self.config.UM_PIX)
             elif fxm:
                 um = self.df.loc[fxm, 'vx']
-                rurx = (u - um)/(pivPixelDiff*const.UM_PIX)
+                rurx = (u - um)/(pivPixelDiff*self.config.UM_PIX)
             """
 
             if fyp and fym:
                 vp = self.df.loc[fyp, 'vy']
                 vm = self.df.loc[fym, 'vy']
-                rvry = (vp - vm)/(2.0*pivPixelDiff*const.UM_PIX)
+                rvry = (vp - vm)/(2.0*pivPixelDiff*self.config.UM_PIX)
             else:
                 rvry = np.nan
             """
             elif fyp:
                 vp = self.df.loc[fyp, 'vy']
-                rvry = (vp - v)/(pivPixelDiff*const.UM_PIX)
+                rvry = (vp - v)/(pivPixelDiff*self.config.UM_PIX)
             elif fym:
                 vm = self.df.loc[fym, 'vy']
-                rvry = (v - vm)/(pivPixelDiff*const.UM_PIX)
+                rvry = (v - vm)/(pivPixelDiff*self.config.UM_PIX)
             """
 
             self.df.loc[index, 'divergence'] = rurx + rvry
@@ -117,7 +107,7 @@ class Piv:
         plt.axis("off")
         #plt.show()
 
-        target_dir = f'{const.DIR}/processed/piv'
+        target_dir = f'{self.config.DIR}/processed/piv'
         pathlib.Path(target_dir).mkdir(exist_ok=True)
 
         fig.savefig(f'{target_dir}/image{self.idImage:04}.png', bbox_inches='tight', pad_inches=0, dpi=203.0)
@@ -140,7 +130,7 @@ class Piv:
 
         plt.axis("off")
 
-        target_dir = f'{const.DIR}/processed/divergence'
+        target_dir = f'{self.config.DIR}/processed/divergence'
         pathlib.Path(target_dir).mkdir(exist_ok=True)
 
         #plt.show()
