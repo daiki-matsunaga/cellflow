@@ -6,12 +6,13 @@ from matplotlib.colors import Normalize
 from module import utils
 
 class Orientation:
-    def __init__(self, config, idImage, imgMask):
+    def __init__(self, dir, config, idImage, imgMask):
+        self.dir = dir
         self.config = config
         self.idImage = idImage
         self.imgMask = imgMask
 
-        self.df = pd.read_csv(f'{self.config.DIR}/data/orientations/data{idImage:04}.csv')
+        self.df = pd.read_csv(f'{self.dir}/data/orientations/data{idImage:04}.csv')
         self.df['Orientation'] = self.df['Orientation']/180.0*np.pi # degree to radian
 
         # rename column name
@@ -120,7 +121,7 @@ class Orientation:
         plt.scatter(self.defect2['x'], self.defect2['y'], s=5, c=self.defect2['charge'], cmap='coolwarm', norm=Normalize(vmin=-0.5, vmax=0.5))
         plt.axis('off')
 
-        target_dir = f'{self.config.DIR}/processed/orientation'
+        target_dir = f'{self.dir}/processed/orientation'
         pathlib.Path(target_dir).mkdir(exist_ok=True)
 
         fig.savefig(f'{target_dir}/image{self.idImage:04}.png', bbox_inches='tight', pad_inches=0, dpi=277.2)
