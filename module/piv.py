@@ -18,6 +18,7 @@ class Piv:
         self.df = self.df.rename(columns={0: 'x', 1: 'y', 2: 'ux1', 3: 'uy1', 4: 'mag1', 5: 'ang1', 6: 'p1'})
         self.df = self.df.rename(columns={7: 'ux2', 8: 'uy2', 9: 'mag2', 10: 'ang2', 11: 'p2'})
         self.df = self.df.rename(columns={12: 'ux0', 13: 'uy0', 14: 'mag0', 15: 'flag'})
+        self.nx = (int)(np.sqrt(len(self.df)))
 
         # multiply to convert from pix/frame to um/min
         coeff = self.um_pix/(config['general']['FRAME_INTERVAL']*config['piv']['PIV_FRAME_DIFF'])*60.0
@@ -104,7 +105,8 @@ class Piv:
         fig = plt.figure(frameon=False)
         plt.imshow(imgCell, cmap="gray")
         q = plt.quiver(self.df_mask['x'], self.df_mask['y'], self.df_mask['vx'], -self.df_mask['vy'], self.df_mask['vn'],
-                   cmap='jet', scale=5.0e+0, width=2.5e-3, norm=Normalize(vmin=0.0, vmax=0.2))
+                   cmap='jet', scale=self.config['piv']['FIG_FLOWVECTOR_SCALE'],
+                   width=2.5e-3, norm=Normalize(vmin=0.0, vmax=self.config['piv']['FIG_FLOWVECTOR_MAX']))
         fig.colorbar(q)
         plt.axis("off")
         #plt.show()
@@ -116,11 +118,11 @@ class Piv:
         plt.close()
 
     def draw_divergence(self, imgCell):
-        X = np.array(self.df['x']).reshape(62, 62)
-        Y = np.array(self.df['y']).reshape(62, 62)
-        D = np.array(self.df['divergence']).reshape(62, 62)
-        vmin = -5.0e-3
-        vmax = +5.0e-3
+        X = np.array(self.df['x']).reshape(self.nx, self.nx)
+        Y = np.array(self.df['y']).reshape(self.nx, self.nx)
+        D = np.array(self.df['divergence']).reshape(self.nx, self.nx)
+        vmin = -self.config['piv']['FIG_DIVERGENCE_MAX']
+        vmax = +self.config['piv']['FIG_DIVERGENCE_MAX']
         levels = np.linspace(vmin, vmax, 51)
 
         fig = plt.figure(frameon=False)

@@ -1,6 +1,7 @@
 general:
   # target directory
-  DIR: /home/matsunaga/Documents/cellflow/data/samples/220908_0005
+  #DIR: /home/matsunaga/Documents/cellflow/data/samples/220908_0005
+  DIR: /Users/matsunaga/Desktop/cellflow/data/samples/220908_0005
 
   # pixels per micro meter
   PIX_UM: 4.8272
@@ -9,11 +10,20 @@ general:
   FRAME_INTERVAL: 45.0
 
   # interation number of erode for mask
-  ERODE_ITERATIONS_FOR_MASKS: 20
+  ERODE_ITERATIONS_FOR_MASKS: 10
 
 piv:
   # how many frame difference for PIV analysis
-  PIV_FRAME_DIFF: 20
+  PIV_FRAME_DIFF: 10
+
+  # scale for flow field vector
+  FIG_FLOWVECTOR_SCALE: 5.0e+0
+    
+  # maximum value of flow field vector
+  FIG_FLOWVECTOR_MAX: 2.0e-1
+
+  # maximum/minimum value for divergence
+  FIG_DIVERGENCE_MAX: 5.0e-3
 
   TARGET_U:
     #{'x': 'ux0', 'y': 'uy0', 'mag': 'mag0'}

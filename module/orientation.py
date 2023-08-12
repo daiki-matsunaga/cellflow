@@ -47,7 +47,7 @@ class Orientation:
             y = int(row['y'])
             theta = row['Orientation']
 
-            if not utils.isInsideMask(x, y, self.imgMask):
+            if not utils.is_inside_mask(x, y, self.imgMask):
                 continue
 
             tx = np.cos(theta)

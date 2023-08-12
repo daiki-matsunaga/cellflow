@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import glob
 from module.piv import Piv
 from module.orientation import Orientation
+from module import utils
 
 class CellData:
     def __init__(self, config):
